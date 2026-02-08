@@ -3,6 +3,7 @@ package com.example.todolist.service;
 import com.example.todolist.dto.TaskCreateDTO;
 import com.example.todolist.dto.TaskResponseDTO;
 import com.example.todolist.exception.ResourceNotFoundException;
+import com.example.todolist.exception.TaskNotFoundException;
 import com.example.todolist.model.Task;
 import com.example.todolist.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +30,7 @@ public class TaskService {
     @Transactional(readOnly = true)
     public TaskResponseDTO getTaskById(Long id) {
         Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Task not found with id: " + id));
+                .orElseThrow(() -> new TaskNotFoundException(id));
         return convertToDTO(task);
     }
 

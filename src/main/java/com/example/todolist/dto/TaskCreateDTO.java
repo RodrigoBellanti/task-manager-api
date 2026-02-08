@@ -7,10 +7,10 @@ import lombok.Data;
 @Data
 public class TaskCreateDTO {
 
-    @NotBlank(message = "El título es obligatorio")
-    @Size(min = 3, max = 100, message = "El título debe tener entre 3 y 100 caracteres")
+    @NotBlank(message = "Title is required")
+    @Size(min = 3, max = 100, message = "Title must be between 3 and 100 characters")
     private String title;
 
-    @Size(max = 500, message = "La descripción no puede superar 500 caracteres")
+    @Size(max = 500, message = "Description cannot exceed 500 characters")
     private String description;
 }

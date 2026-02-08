@@ -51,6 +51,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 
+    @ExceptionHandler(TaskNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleTaskNotFoundException(
+            TaskNotFoundException ex) {
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("timestamp", LocalDateTime.now());
+        response.put("status", HttpStatus.NOT_FOUND.value());
+        response.put("message", ex.getMessage());
+
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    }
+
     // Clase interna para respuestas de error
     public record ErrorResponse(int status, String message, LocalDateTime timestamp) {}
 }
