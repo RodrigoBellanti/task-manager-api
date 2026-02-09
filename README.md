@@ -1,6 +1,10 @@
+# Task Manager REST API
+
+A professional RESTful API for task management built with Spring Boot and Java 17. This project demonstrates CRUD operations, JPA/Hibernate integration, DTOs, input validation, error handling, pagination, interactive API documentation, and comprehensive unit testing.
+
 ![Java](https://img.shields.io/badge/Java-17-orange)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen)
-![Tests](https://img.shields.io/badge/tests-11%20passing-success)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.10-brightgreen)
+![Tests](https://img.shields.io/badge/tests-20%20passing-success)
 
 ## 🚀 Features
 
@@ -8,18 +12,22 @@
 - DTO pattern for clean separation between API and domain models
 - Comprehensive input validation with custom error messages
 - Global exception handling with meaningful error responses
+- **Pagination and sorting** for efficient data retrieval
+- **Swagger/OpenAPI documentation** with interactive UI
 - H2 in-memory database for quick setup and testing
 - JPA/Hibernate for data persistence
 - Transactional service layer
-- Unit tests with Mockito (90%+ coverage)
+- Unit and controller tests with Mockito (20 tests, 90%+ coverage)
 - Automatic timestamps for created/updated records
+- **CI/CD pipeline** with GitHub Actions
 
 ## 🛠️ Technologies
 
 - **Java 17**
-- **Spring Boot 3.x**
+- **Spring Boot 3.5.10**
 - **Spring Data JPA**
 - **Spring Validation**
+- **Springdoc OpenAPI 2.7.0** (Swagger UI)
 - **H2 Database**
 - **Lombok**
 - **JUnit 5**
@@ -30,7 +38,7 @@
 
 - JDK 17 or higher
 - Maven 3.6+
-- (Optional) Insomnia, Postman, or similar tool for testing
+- (Optional) Docker for containerization
 
 ## ⚙️ Installation & Setup
 
@@ -52,35 +60,96 @@ mvn spring-boot:run
 
 The API will start on `http://localhost:8080`
 
+## 📖 API Documentation
+
+### Swagger UI (Interactive Documentation)
+
+Access the Swagger UI at:
+```
+http://localhost:8080/swagger-ui/index.html
+```
+
+Here you can:
+- View all available endpoints
+- Test endpoints directly from the browser
+- See request/response models
+- View validation rules
+
+### OpenAPI Specification
+
+View the raw OpenAPI spec at:
+```
+http://localhost:8080/v3/api-docs
+```
+
 ## 🔌 API Endpoints
 
-### Get all tasks
+### Get all tasks (with optional pagination)
+
+**Without pagination:**
 ```http
 GET /api/tasks
 ```
 
-**Response:**
-```json
-[
-  {
-    "id": 1,
-    "title": "Complete project",
-    "description": "Finish the Spring Boot API",
-    "completed": false,
-    "createdAt": "2026-02-08T10:30:00",
-    "updatedAt": "2026-02-08T10:30:00"
-  }
-]
+**With pagination:**
+```http
+GET /api/tasks?page=0&size=10
 ```
 
-### Get tasks by status
+**With sorting:**
 ```http
-GET /api/tasks/status?completed=false
+GET /api/tasks?page=0&size=10&sortBy=title&direction=DESC
 ```
+
+**With filtering:**
+```http
+GET /api/tasks?completed=false&page=0&size=10
+```
+
+**Response (paginated):**
+```json
+{
+  "content": [
+    {
+      "id": 1,
+      "title": "Complete project",
+      "description": "Finish the Spring Boot API",
+      "completed": false,
+      "createdAt": "2026-02-08T10:30:00",
+      "updatedAt": "2026-02-08T10:30:00"
+    }
+  ],
+  "page": 0,
+  "size": 10,
+  "totalElements": 25,
+  "totalPages": 3,
+  "first": true,
+  "last": false
+}
+```
+
+**Query Parameters:**
+- `completed` (Boolean): Filter by completion status
+- `page` (Integer): Page number (0-indexed)
+- `size` (Integer): Items per page
+- `sortBy` (String): Field to sort by (default: "id")
+- `direction` (String): Sort direction - ASC or DESC (default: "ASC")
 
 ### Get a specific task
 ```http
 GET /api/tasks/{id}
+```
+
+**Success Response (200):**
+```json
+{
+  "id": 1,
+  "title": "Complete project",
+  "description": "Finish the Spring Boot API",
+  "completed": false,
+  "createdAt": "2026-02-08T10:30:00",
+  "updatedAt": "2026-02-08T10:30:00"
+}
 ```
 
 **Error Response (404):**
@@ -102,6 +171,10 @@ Content-Type: application/json
   "description": "Task description"
 }
 ```
+
+**Validation Rules:**
+- `title`: Required, 3-100 characters
+- `description`: Optional, max 500 characters
 
 **Validation Error (400):**
 ```json
@@ -142,10 +215,14 @@ Content-Type: application/json
 PATCH /api/tasks/{id}/toggle
 ```
 
+Switches the `completed` status between `true` and `false`.
+
 ### Delete a task
 ```http
 DELETE /api/tasks/{id}
 ```
+
+Returns `204 No Content` on success.
 
 ## ✅ Input Validation
 
@@ -156,7 +233,17 @@ All endpoints validate input data:
 | **title** | Required, 3-100 characters |
 | **description** | Optional, max 500 characters |
 
-Invalid requests return `400 Bad Request` with detailed error messages.
+Invalid requests return `400 Bad Request` with detailed error messages in the following format:
+
+```json
+{
+  "timestamp": "2026-02-08T12:00:00",
+  "status": 400,
+  "errors": {
+    "fieldName": "Error message"
+  }
+}
+```
 
 ## 🧪 Running Tests
 
@@ -168,13 +255,25 @@ mvn test
 
 **Test Coverage:**
 - Service layer: 11 unit tests
-- Test scenarios: Create, Read, Update, Delete, Toggle, Filter
-- Edge cases: Not found errors, validation errors
+- Controller layer: 9 integration tests
+- **Total: 20 tests**
+- Test scenarios: Create, Read, Update, Delete, Toggle, Pagination, Filtering, Validation
 
 **Sample test output:**
 ```
-[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 20, Failures: 0, Errors: 0, Skipped: 0
 ```
+
+## 🔄 CI/CD Pipeline
+
+The project includes a GitHub Actions workflow that:
+- Runs on every push to any branch
+- Compiles the project
+- Executes all tests
+- Generates test reports
+- Uploads test artifacts
+
+View workflow status in the **Actions** tab on GitHub.
 
 ## 📊 Database
 
@@ -198,31 +297,48 @@ src/main/java/
 ├── repository/          # Data access layer
 ├── model/               # Entity classes
 ├── dto/                 # Data Transfer Objects
-└── exception/           # Custom exceptions and handlers
+├── exception/           # Custom exceptions and handlers
+└── config/              # Configuration classes (Swagger, etc.)
 
 src/test/java/
-└── service/             # Unit tests
+├── service/             # Service unit tests
+└── controller/          # Controller integration tests
 ```
 
 ## 🎯 Architecture Highlights
 
 ### DTOs (Data Transfer Objects)
-Separate DTOs for requests and responses to:
+Separate DTOs for requests and responses:
+- **TaskCreateDTO**: For creating/updating tasks (input validation)
+- **TaskResponseDTO**: For API responses (with timestamps)
+- **PageResponseDTO**: Generic wrapper for paginated responses
+
+Benefits:
 - Hide internal entity structure
 - Control exactly what data is exposed
 - Enable different validation rules for different operations
+- Clean separation of concerns
+
+### Pagination & Sorting
+Uses Spring Data's `Pageable` interface:
+- Efficient database queries with `LIMIT` and `OFFSET`
+- Configurable page size and sorting
+- Metadata in responses (totalPages, totalElements, etc.)
+- Works seamlessly with filtering
 
 ### Global Exception Handling
 Centralized error handling with `@ControllerAdvice`:
-- Consistent error response format
-- Meaningful HTTP status codes
+- Consistent error response format across all endpoints
+- Meaningful HTTP status codes (400, 404, 500)
 - Detailed validation error messages
+- Separate handling for different exception types
 
 ### Transactional Service Layer
 All service methods are transactional:
-- `@Transactional(readOnly = true)` for queries
-- `@Transactional` for modifications
-- Ensures data consistency
+- `@Transactional(readOnly = true)` for queries (optimization)
+- `@Transactional` for modifications (data consistency)
+- Automatic rollback on exceptions
+- ACID guarantees
 
 ## 📝 Example Usage
 
@@ -236,9 +352,14 @@ curl -X POST http://localhost:8080/api/tasks \
   }'
 ```
 
+### Getting paginated tasks:
+```bash
+curl "http://localhost:8080/api/tasks?page=0&size=5&sortBy=createdAt&direction=DESC"
+```
+
 ### Filtering completed tasks:
 ```bash
-curl http://localhost:8080/api/tasks/status?completed=true
+curl "http://localhost:8080/api/tasks?completed=true"
 ```
 
 ### Toggling task completion:
@@ -248,26 +369,29 @@ curl -X PATCH http://localhost:8080/api/tasks/1/toggle
 
 ## 🔜 Future Improvements
 
-- [ ] Add pagination and sorting
 - [ ] Integrate PostgreSQL for production
-- [ ] Implement Spring Security with JWT
-- [ ] Add integration tests
-- [ ] Implement API documentation with Swagger/OpenAPI
-- [ ] Add Docker support
-- [ ] Implement CI/CD pipeline
-- [ ] Add task categories/tags
-- [ ] Implement search functionality
+- [ ] Implement Spring Security with JWT authentication
+- [ ] Add role-based access control (RBAC)
+- [ ] Implement task categories/tags with Many-to-Many relationship
+- [ ] Add search functionality with full-text search
+- [ ] Implement soft delete for tasks
+- [ ] Add task priority levels
+- [ ] Implement task due dates with reminders
+- [ ] Add Docker support with docker-compose
+- [ ] Deploy to cloud platform (AWS/Heroku)
+- [ ] Add monitoring with Actuator
+- [ ] Implement caching with Redis
 
 ## 👨‍💻 Author
 
 **Rodrigo Bellanti**
 - GitHub: [@RodrigoBellanti](https://github.com/RodrigoBellanti)
 - LinkedIn: [Rodrigo Bellanti](https://www.linkedin.com/in/rodrigo-bellanti/)
-- 
+
 ## 📄 License
 
 This project is open source and available under the [MIT License](LICENSE).
 
 ---
 
-**Note:** This is a learning project demonstrating Spring Boot best practices including DTOs, validation, error handling, and comprehensive testing.
+**Note:** This is a learning project demonstrating Spring Boot best practices including RESTful API design, DTOs, validation, error handling, pagination, API documentation, and comprehensive testing.
