@@ -9,7 +9,6 @@ import java.util.List;
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
 
-    // Spring Data JPA genera automáticamente la implementación
     List<Task> findByCompleted(Boolean completed);
 
     List<Task> findByTitleContainingIgnoreCase(String title);
