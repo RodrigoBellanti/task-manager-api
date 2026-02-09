@@ -4,6 +4,7 @@ import com.example.todolist.dto.PageResponseDTO;
 import com.example.todolist.dto.TaskCreateDTO;
 import com.example.todolist.dto.TaskResponseDTO;
 import com.example.todolist.service.TaskService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -13,16 +14,21 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Parameter;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/tasks")
 @RequiredArgsConstructor
+@Tag(name = "Tasks", description = "Task management endpoints")
 public class TaskController {
 
     private final TaskService taskService;
 
+    @Operation(summary = "Get all tasks", description = "Returns all tasks with optional pagination and filtering")
     @GetMapping
     public ResponseEntity<?> getAllTasks(
             @RequestParam(required = false) Boolean completed,
@@ -59,6 +65,7 @@ public class TaskController {
         return ResponseEntity.ok(tasks);
     }
 
+    @Operation(summary = "Get task by ID", description = "Returns a single task by its ID")
     @GetMapping("/{id}")
     public ResponseEntity<TaskResponseDTO> getTaskById(@PathVariable Long id) {
         return ResponseEntity.ok(taskService.getTaskById(id));
